@@ -11,14 +11,16 @@
 */
 
 function search_api_domain_entity_property_info_alter(&$info) {
-  $properties = &$info['node']['properties'];
+  foreach ($info as &$entity_type) {
+    $properties = &$entity_type['properties'];
 
-  $properties['custom_domain_access'] = array(
-    'label' => t('Domain Access Information'),
-    'description' => t('The domains to which the node is published.'),
-    'type' => 'list<integer>',
-    'getter callback' => 'search_api_domain_get_domain_info',
-  );
+    $properties['custom_domain_access'] = array(
+      'label' => t('Domain Access Information'),
+      'description' => t('The domains to which the node is published.'),
+      'type' => 'list<integer>',
+      'getter callback' => 'search_api_domain_get_domain_info',
+    );
+  }
 }
 
 function search_api_domain_get_domain_info($data, array $options, $name, $type, $info) {
