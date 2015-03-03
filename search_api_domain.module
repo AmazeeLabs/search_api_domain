@@ -24,7 +24,12 @@ function search_api_domain_entity_property_info_alter(&$info) {
 }
 
 function search_api_domain_get_domain_info($data, array $options, $name, $type, $info) {
-  return (!empty($data->domains) ? $data->domains : NULL);
+  if (!empty($data->domains)) {
+    // If entity has "Send to all affiliates" enabled: add "-1" to domains list.
+    $all_affiliates = !empty($data->domain_site) ? array(-1 => -1) : array();
+    return $all_affiliates + $data->domains;
+  }
+  return NULL;
 }
 
 /**
@@ -35,5 +40,11 @@ function search_api_domain_get_domain_info($data, array $options, $name, $type, 
 
 function search_api_domain_search_api_query_alter(SearchApiQueryInterface $query) {
   $domain = domain_get_domain();
-  $query->condition('custom_domain_access', $domain['domain_id']);
+  $filter = new SearchApiQueryFilter('OR');
+  if (isset($domain['domain_id'])) {
+    $filter->condition('custom_domain_access', $domain['domain_id']);
+  }
+  // Do not filter entities that have "Send to all affiliates" enabled.
+  $filter->condition('custom_domain_access', -1);
+  $query->filter($filter);
 }
