@@ -39,6 +39,14 @@ function search_api_domain_get_domain_info($data, array $options, $name, $type, 
 */
 
 function search_api_domain_search_api_query_alter(SearchApiQueryInterface $query) {
+  $fields = $query->getIndex()->getFields();
+  if (empty($fields['custom_domain_access'])) {
+    return;
+  }
+  if ($fields['custom_domain_access']['type'] != 'list<integer>') {
+    watchdog('search_api_domain', 'The custom_domain_access field is not properly configured in index !index. It should be of type Integer.', array('!index' => l($query->getIndex()->name, 'admin/config/search/search_api/index/' . $query->getIndex()->machine_name . '/fields')), WATCHDOG_ERROR);
+    return;
+  }
   $domain = domain_get_domain();
   $filter = new SearchApiQueryFilter('OR');
   if (isset($domain['domain_id'])) {
